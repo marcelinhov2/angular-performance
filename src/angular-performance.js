@@ -1,6 +1,6 @@
 var perf = angular.module('performance', []);
 
-perf.factory('beacon', [function () {
+perf.factory('performance-beacon', [function () {
 
     var beacon='';
     return {
@@ -19,7 +19,7 @@ perf.factory('beacon', [function () {
  *
  * @see performanceLoaded
  */
-perf.directive('performance', ['beacon',function (beacon) {
+perf.directive('performance', ['performance-beacon',function (beacon) {
     return {
         restrict: 'A',
         link: function (scope, element, attrs) {

@@ -16,17 +16,6 @@ The DOM is then continuously manipulated as part of user interaction or monitori
 
 The *perceived* page performance is how long the user thinks the major elements of the page took to load. By definition it is highly subjective - some users may think that the page is loaded just because the initial furniture appears.  But for most users this will be the parts of the page they consider most important.  
 
-Taking GMail as an example, most users will consider the page ready when the list of emails appear.  Whether or not the social tabs, filters, navigation or GTalk appears is less important.  
-
-![gmail](http://farm6.staticflickr.com/5520/9756473461_815bba6b5b_o.png)
-
-Similarly, on a news website, the title and body of the news article matter the most.  Related articles and featured stories aren't that important, but top stories may matter.
-
-![bbc](http://farm6.staticflickr.com/5329/9756789024_f61b0d57f4_o.png)
-
-The images above are just examples with arbitrarily assigned regions of importance.  The point here is, the definition of page done has to be defined on a per-case basis.  The most common definition is usually something like *"The page is done when this particular div is filled with content"* - indicating that the page loaded, an API call was made and the contents were rendered. On a heavier page, this would be when three or four divs have all been filled with content.  You could even choose to ignore certain parts of the page as being less important.
-
-
 ##So how do we measure perceived page performance?
 
 The *perceived* page load is when all of the important dynamic parts of the page have been filled.  This requires the developers to agree upon what the most important parts are, and to programmatically indicate when the specific portions are done.  It's an inexact science and the results will vary from user to user due to machine specs, network latency and other environmental factors, but you get a good idea of the timings involved and what users are actually experiencing.  
@@ -37,9 +26,14 @@ Because this is a client side operation, a few components are required:
 2. A listener which waits to be informed by all of the indicators; internally the listener can set up various timers as necessary.
 3. A beacon which the listener can send the aggregate information to once it is satisfied that all of the indicators have reported to it.  This beacon usually takes the form of an empty image, with timings passed in the querystring.
 
-        /beacon.png?content=3913&name=ArticleView&initial=1011
-    
+        /log/PerfLog?name=First&content=1853&initial=2746&checkPoints=DataLoaded-1853;
+
     The above means it took the ArticleView page 1011 milliseconds for its *initial* load and 3913 milliseconds to load the actual *content* (the perceived load time).
+
+    If Multiple check points are added data can drilled down from the url shown below
+
+        /log/PerfLog?name=Third&content=9444&initial=2746&checkPoints=Object2-1803;Object3-8554;Object1-9444;Status.Complete-9444;
+
 
 4. The beacon requests will be stored in your web server logs, and a log parsing application (eg. logster) can retrospectively process it, grab the information and store it your aggregating service (eg. graphite).
 
@@ -51,19 +45,24 @@ Because this is a client side operation, a few components are required:
 
 The listener shown above is the `performance` directive.  Place this attribute at the beginning of your angular view.  
 
-    <div performance="PageName" performance-beacon="/sample/img/beacon.png">
+    <div performance="PageName">
     
-The `performance-beacon` indicates where the HTTP request should go when perceived page load is complete.
+The `performance-beacon` service indicates where the HTTP request should go when perceived page load is complete.
 
-The watchers above are the `performance-loaded` directives.  Place these attributes anywhere within the view and set its value to an object on the `$scope`.  For example, you can do this
+    angular.module('myApp', ['myApp.controllers', 'performance']).run(['performance-beacon',function(beacon){
+        beacon.url('log/PerfLog');
+    }]);
 
-    performance-loaded="ProductsFromAPI"
+The watchers above are the `performance-loaded` directives.  Place these attributes anywhere within the view and set its value to an object on the `$scope`. Prepend each scope variable with its parentListener name seperated by ':'  For example, you can do this
+
+    performance-loaded="Third:Object1"
     
-This directive will watch the `$scope.ProductsFromAPI` object and mark loading as done when this object contains a value.  You can control this further by using an object just for this directive:
+This directive will watch the `$scope.Object1` object and mark loading as done when this object contains a value.  You can control this further by using an object just for this directive:
 
-    performance-loaded="Loaded"
+    performance-loaded="Third:Object2"
+    performance-loaded="Third:Object3"
     
-And in your controller, only set `$scope.Loaded = true` when you feel that all the processing is complete.  This is useful when your controller makes multiple API calls and you need to wait for all of them to complete before indicating that loading is complete.
+If multiple check points are required, use the same directive like above and this directive will watch the objects `$scope.Object2` and `$scope.Object3` and mark loading as done when this object contains a value. And in your controller, only set `$scope.Status.Complete = true` when you feel that all the processing is complete.  This is useful when your controller makes multiple API calls and you need to wait for all of them to complete before indicating that loading is complete.
 
  
 Ensure that the `performance loaded` directives sit within the scope of the `performance` directive.  In other words, the `performance-loaded` directives should be in the same controller as `performance` or in a 'sub-controller' inside it.  
@@ -98,13 +97,9 @@ Ensure that the `performance loaded` directives sit within the scope of the `per
 
 ## Demo/Code
 
-See [this page](http://code.mendhak.com/angular-performance/sample/) for a demo.  Be sure to open your networks tab or Fiddler to see the beacon request.
+Look at [index.html](https://github.com/sandeeptharayilGit/angular-performance/blob/master/sample/index.html) and [controllers.js](https://github.com/sandeeptharayilGit/angular-performance/blob/master/sample/js/controllers.js) to see how it's done.
 
-![network tab](http://farm8.staticflickr.com/7432/9759419411_4bddff429b_o.png)
-
-Look at [index.html](https://github.com/mendhak/angular-performance/blob/master/sample/index.html) and [controllers.js](https://github.com/mendhak/angular-performance/blob/master/sample/js/controllers.js) to see how it's done.
-
-You can use [angular-performance.js](https://raw.github.com/mendhak/angular-performance/master/src/angular-performance.js) or its [minified version](https://raw.github.com/mendhak/angular-performance/master/build/angular-performance.min.js).
+You can use [angular-performance.js](https://raw.github.com/sandeeptharayilGit/angular-performance/master/src/angular-performance.js) or its [minified version](https://raw.github.com/sandeeptharayilGit/angular-performance/master/build/angular-performance.min.js).
 
 
 ## Other methods
@@ -118,4 +113,4 @@ And having a listener such as WebPageTest record them. This allows for automatio
 
 ## License
 
-[MIT License](https://github.com/mendhak/angular-performance/blob/master/LICENSE)
+[MIT License](https://github.com/sandeeptharayilGit/angular-performance/blob/master/LICENSE)

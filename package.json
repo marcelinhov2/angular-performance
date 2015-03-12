@@ -1,11 +1,11 @@
 {
-    "author": "Mendhak",
+    "author": "Sandeep Tharayil",
     "name": "angular-performance",
     "description": "AngularJS directive to measure perceived page load time",
-    "version": "0.1.1",
+    "version": "0.0.1",
     "repository": {
         "type": "git",
-        "url": "https://github.com/mendhak/angular-performance.git"
+        "url": "https://github.com/sandeeptharayilGit/angular-performance.git"
     },
     "main": "angular-performance",
 

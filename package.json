@@ -7,7 +7,7 @@
         "type": "git",
         "url": "https://github.com/sandeeptharayilGit/angular-performance.git"
     },
-    "main": "angular-performance",
+    "main": "src/angular-performance.js",
 
     "dependencies": {
 
